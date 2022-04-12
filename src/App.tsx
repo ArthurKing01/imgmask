@@ -5,7 +5,7 @@ import { createUseStyles } from 'react-jss'
 import { getDefaultLabelItems, getDefaultShape, getPoint, getShape, getShapePositionDelta, getShapeSizeDelta, isValidShape, LabelItems, normalizePoint, Point } from './core'
 import { Strock } from './block'
 import 'antd/dist/antd.css';
-import { mapToCsv } from './utils'
+import { csvToFilesResult, mapToCsv } from './utils'
 import cx from 'classnames'
 
 const useStyle = createUseStyles({
@@ -98,10 +98,24 @@ function App() {
             }
         } else if (e.target.name === 'file') {
             if (e.target.files) {
-                setFiles(Array.from(new Set([
+                const filenames = new Set(files.map(f => f.name))
+                setFiles([
                     ...files,
-                    ...e.target.files
-                ])))
+                    ...Array.from(e.target.files).filter(f => !filenames.has(f.name))
+                ])
+            }
+        } else if (e.target.name === 'csv') {
+            if (file) {
+                const fileReader = new FileReader()
+                fileReader.readAsText(file)
+                fileReader.onload = () => {
+                    // const result = (fileReader.result as string).split('\n').map(item => item.trim())
+                    // setLabels(result)
+                    // setActiveLabel(result[0])
+                    const loadedFilesResult = csvToFilesResult(fileReader.result as string, labels)
+                    console.log(loadedFilesResult)
+                    setFilesResult(loadedFilesResult)
+                }
             }
         }
 
@@ -190,18 +204,6 @@ function App() {
                     resultMap.set(`${labelIndex}_p1_1`, [shape.p1[1]])
                 }
 
-                if (resultMap.get(`${labelIndex}_p2_0`)) {
-                    resultMap.get(`${labelIndex}_p2_0`)?.push(shape.p2[0])
-                } else {
-                    resultMap.set(`${labelIndex}_p2_0`, [shape.p2[0]])
-                }
-
-                if (resultMap.get(`${labelIndex}_p2_1`)) {
-                    resultMap.get(`${labelIndex}_p2_1`)?.push(shape.p2[1])
-                } else {
-                    resultMap.set(`${labelIndex}_p2_1`, [shape.p2[1]])
-                }
-
                 if (resultMap.get(`${labelIndex}_p3_0`)) {
                     resultMap.get(`${labelIndex}_p3_0`)?.push(shape.p3[0])
                 } else {
@@ -212,18 +214,6 @@ function App() {
                     resultMap.get(`${labelIndex}_p3_1`)?.push(shape.p3[1])
                 } else {
                     resultMap.set(`${labelIndex}_p3_1`, [shape.p3[1]])
-                }
-
-                if (resultMap.get(`${labelIndex}_p4_0`)) {
-                    resultMap.get(`${labelIndex}_p4_0`)?.push(shape.p4[0])
-                } else {
-                    resultMap.set(`${labelIndex}_p4_0`, [shape.p4[0]])
-                }
-
-                if (resultMap.get(`${labelIndex}_p4_1`)) {
-                    resultMap.get(`${labelIndex}_p4_1`)?.push(shape.p4[1])
-                } else {
-                    resultMap.set(`${labelIndex}_p4_1`, [shape.p4[1]])
                 }
             })
         })
@@ -239,12 +229,18 @@ function App() {
             <header className="App-header">
                 <div className={classes.headerWrapper}>
                     <div>
-                        <p>请选择标注文件</p>
+                        <p>请选择标签文件</p>
                         <p>
-                            <input type="file" name="label" disabled={labels.length > 0} onChange={handleChange} /> 标签数量：{labels.length}
+                            <input type="file" name="label" disabled={labels.length > 0} onChange={handleChange} />
+
+                            标签数量：{labels.length}
                             <Button style={{
                                 marginLeft: 10
                             }} type="primary" onClick={handleExport}>导出</Button>
+                        </p>
+                        <p>导入已标记的csv文件(optional)</p>
+                        <p>
+                            <input type="file" name="csv" disabled={labels.length === 0} onChange={handleChange} />
                         </p>
                         {
                             labels.length > 0 && <>
@@ -273,9 +269,9 @@ function App() {
                                     }} color={"#87d068"}>标注完成</Tag>
                                 ]
                                 const isStatus_0 = filesResult[file.name] && Object.values(filesResult[file.name]).every(shape => !isValidShape(shape))
-                                const isStatus_2 = filesResult[file.name] && Object.values(filesResult[file.name]).every(shape => isValidShape(shape))
+                                // const isStatus_2 = filesResult[file.name] && Object.values(filesResult[file.name]).every(shape => isValidShape(shape))
                                 const isStatus_1 = filesResult[file.name] && Object.values(filesResult[file.name]).some(shape => !isValidShape(shape)) && Object.values(filesResult[file.name]).some(shape => isValidShape(shape))
-                                const finishStatus: 0|1|2 = filesResult[file.name] ? isStatus_0 ? 0 : isStatus_1 ? 1 : 2 : 0
+                                const finishStatus: 0 | 1 | 2 = filesResult[file.name] ? isStatus_0 ? 0 : isStatus_1 ? 1 : 2 : 0
                                 return <li key={file.name} className={cx(currentFileName === file.name && classes.activeLi)} onClick={() => selectFile(file)}>
                                     {file.name}  {statusString[finishStatus]}
                                 </li>

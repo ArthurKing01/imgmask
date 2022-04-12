@@ -27,9 +27,7 @@ export type Point = [number, number]
 
 export type Shape = {
     p1: Point
-    p2: Point
     p3: Point
-    p4: Point
 }
 
 export type LabelItems = {
@@ -56,18 +54,14 @@ export const normalizePoint = (p: Point, viewPort: {
 export const getShape = (p1: Point, p3: Point): Shape => {
     return {
         p1,
-        p2: getPoint(p3[0], p1[1]),
         p3,
-        p4: getPoint(p1[0], p3[1])
     }
 }
 
 export const getShapeSizeDelta = (shape: Shape, delta: {width: number, height: number}): Shape => {
-    shape.p2[0] += delta.width
     shape.p3[0] += delta.width
 
     shape.p3[1] += delta.height
-    shape.p4[1] += delta.height
 
     return shape
 }
@@ -85,14 +79,10 @@ export const getShapePositionDelta = (shape: Shape, delta: {left: number, top: n
         delta.top = 0
     }
     shape.p1[0] += delta.left
-    shape.p2[0] += delta.left
     shape.p3[0] += delta.left
-    shape.p4[0] += delta.left
 
     shape.p1[1] += delta.top
-    shape.p2[1] += delta.top
     shape.p3[1] += delta.top
-    shape.p4[1] += delta.top
 
     return shape
 }
