@@ -55,7 +55,7 @@ function App() {
         return filesResult[currentFileName]
     }, [currentFileName, filesResult])
 
-    const selectFile = (file: File) => {
+    const selectFile = useCallback((file: File) => {
         const fileReader = new FileReader()
         fileReader.readAsDataURL(file)
         fileReader.onload = (e) => {
@@ -82,7 +82,7 @@ function App() {
             }
 
         }
-    }
+    }, [filesResult]) 
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         const file = e.target.files?.[0]
@@ -137,7 +137,7 @@ function App() {
     }, [filesResult, currentFileName, activeLabel])
 
     const handleCanvasMouseDown: React.MouseEventHandler<HTMLDivElement> = useCallback((e) => {
-        if (!isValidShape(currentFileLabelItems[activeLabel])) {
+        if (currentFileLabelItems && !isValidShape(currentFileLabelItems[activeLabel])) {
             setMouseDown(true)
             const x = e.pageX
             const y = e.pageY - e.currentTarget.offsetTop
@@ -170,10 +170,25 @@ function App() {
             setMouseDown(false)
         }
         document.body.addEventListener('mouseup', handleBodyMouseUp)
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'ArrowUp') {
+                const currentFileIndex = files.findIndex(f => f.name === currentFileName)
+                if (files[currentFileIndex - 1]) {
+                    selectFile(files[currentFileIndex - 1])
+                }
+            } else if (e.code === 'ArrowDown') {
+                const currentFileIndex = files.findIndex(f => f.name === currentFileName)
+                if (files[currentFileIndex + 1]) {
+                    selectFile(files[currentFileIndex + 1])
+                }
+            }
+        }
+        document.body.addEventListener('keydown', handleKeyDown)
         return () => {
             document.body.removeEventListener('mouseup', handleBodyMouseUp)
+            document.body.removeEventListener('keydown', handleKeyDown)
         }
-    }, [])
+    }, [files, currentFileName, selectFile])
 
     const handleRemove = useCallback((label: string) => {
         filesResult[currentFileName][label] = getDefaultShape()
