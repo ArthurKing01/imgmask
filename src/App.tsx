@@ -82,7 +82,7 @@ function App() {
             }
 
         }
-    }, [filesResult, labels]) 
+    }, [filesResult, labels])
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         const file = e.target.files?.[0]
@@ -181,6 +181,16 @@ function App() {
                 if (files[currentFileIndex + 1]) {
                     selectFile(files[currentFileIndex + 1])
                 }
+            } else if (e.code === 'ArrowLeft') {
+                const currentLabelIndex = labels.findIndex(l => l === activeLabel)
+                if (labels[currentLabelIndex - 1]) {
+                    setActiveLabel(labels[currentLabelIndex - 1])
+                }
+            } else if (e.code === 'ArrowRight') {
+                const currentLabelIndex = labels.findIndex(l => l === activeLabel)
+                if (labels[currentLabelIndex + 1]) {
+                    setActiveLabel(labels[currentLabelIndex + 1])
+                }
             }
         }
         document.body.addEventListener('keydown', handleKeyDown)
@@ -188,7 +198,7 @@ function App() {
             document.body.removeEventListener('mouseup', handleBodyMouseUp)
             document.body.removeEventListener('keydown', handleKeyDown)
         }
-    }, [files, currentFileName, selectFile])
+    }, [files, currentFileName, selectFile, activeLabel, labels])
 
     const handleRemove = useCallback((label: string) => {
         filesResult[currentFileName][label] = getDefaultShape()
@@ -298,19 +308,45 @@ function App() {
 
 
 
-                <p>
+                <p style={{
+                    position: 'fixed',
+                    top: 0,
+                    display: 'flex',
+                    justifyContent: 'end',
+                    width: '100%',
+                    left: 0,
+                    zIndex: 2,
+                    alignItems: 'center'
+                }}>
+                    <span style={{
+                        color: 'red',
+                        fontWeight: 'bolder',
+                        marginRight: 10
+                    }}>
+                        {
+                            '当前标签：' + activeLabel
+                        }
+                    </span>
                     {
+
                         currentFileLabelItems && Object.entries(currentFileLabelItems).map(([k, v]) => {
+                            const isActive = activeLabel === k
                             if (isValidShape(v)) {
                                 return <Button
                                     key={k}
                                     type="primary"
+                                    style={{
+                                        border: isActive ? '1px solid red' : "none"
+                                    }}
                                     onClick={() => setActiveLabel(k)}
                                 >{k}</Button>
                             }
                             return <Button
                                 key={k}
                                 type="default"
+                                style={{
+                                    border: isActive ? '1px solid red' : "none"
+                                }}
                                 onClick={() => setActiveLabel(k)}
                             >{k}</Button>
                         })
