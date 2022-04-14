@@ -82,7 +82,7 @@ function App() {
             }
 
         }
-    }, [filesResult]) 
+    }, [filesResult, labels]) 
 
     const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
         const file = e.target.files?.[0]
